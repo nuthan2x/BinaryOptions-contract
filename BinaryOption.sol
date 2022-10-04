@@ -112,17 +112,15 @@ contract BOptions {
             
     }
 
-    function placebet(Instrument instrument, uint amount, int strikeprice, uint expiry,uint slippage,bool longorshort) external payable {
-        require( msg.value < (msg.sender).balance && 
-                 (msg.value * uint(GetEthprice()/100)) >= (amount * slippage), //  slippage
-                 "insuffficient eth, det some from faucet");
+    function placebet(uint id, Instrument instrument, uint amount, int strikeprice, uint expiry,uint slippage,bool longorshort) external payable {
+        require( msg.value < (msg.sender).balance,"insuffficient eth, get some from faucet");
 
         uint timestamp = block.timestamp;
         uint optionexpiration = timestamp + expiry; 
-        uint slippedamount = amount * slippage;
+        uint amount =  msg.value;
         // if (instrument == "ETH"){ int strikeprice = GetEthprice();} else { int strikeprice = GetBtcprice();}
          
-        bet memory newbet = bet( Accountbets[msg.sender].length , instrument, slippedamount, strikeprice , timestamp, optionexpiration, Status.beton, longorshort);
+        bet memory newbet = bet( id, instrument, amount, strikeprice , timestamp, optionexpiration, Status.beton, longorshort);
 
         Accountbets[msg.sender].push(newbet);
     }
@@ -149,8 +147,10 @@ contract BOptions {
 
         uint gain = rewardmultiplier(id,msg.sender,totalhourdrop,pricechangedrop) * betinfo.stake ;
 
-        bool txn_success = DAI.transfer(msg.sender,gain);
-        require(txn_success,"withdrawal failed");
+        if (wonorlost) {
+            bool txn_success = DAI.transfer(msg.sender,gain);
+            require(txn_success,"withdrawal failed");
+        }
     }
 
 
